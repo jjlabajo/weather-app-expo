@@ -3,14 +3,23 @@ import { StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, RefreshCon
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text, View } from '@/components/Themed';
 import { getCurrentLocation, reverseGeocode } from '@/services/location';
-import { fetchWeather, WeatherData, getWeatherIcon, getWeatherDescription } from '@/services/weather';
+import { fetchWeather, WeatherData, getWeatherIcon, getWeatherDescriptionKey } from '@/services/weather';
+import { useSettingsStore, convertTemp } from '@/store/useSettingsStore';
+import { translations } from '@/constants/translations';
 
 export default function WeatherHomeScreen() {
-  const [city, setCity] = useState<string>('Detecting location...');
+  const [city, setCity] = useState<string>('detectingLocation');
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
+  
+  const unit = useSettingsStore((state) => state.unit);
+  const language = useSettingsStore((state) => state.language);
+
+  const t = (key: keyof typeof translations['en']) => {
+    return translations[language][key] || translations['en'][key];
+  };
 
   const loadData = async () => {
     try {
@@ -19,7 +28,7 @@ export default function WeatherHomeScreen() {
       
       const userLoc = await getCurrentLocation();
       if (!userLoc) {
-        setError('Location permission denied or unavailable.');
+        setError('locationDenied');
         setLoading(false);
         return;
       }
@@ -33,7 +42,7 @@ export default function WeatherHomeScreen() {
       setCity(cityName || 'Unknown Location');
     } catch (err) {
       console.error(err);
-      setError('Failed to fetch weather data.');
+      setError('failedFetch');
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -53,22 +62,25 @@ export default function WeatherHomeScreen() {
     return (
       <View style={styles.center}>
         <ActivityIndicator size="large" color="#007AFF" />
-        <Text style={styles.loadingText}>Fetching weather...</Text>
+        <Text style={styles.loadingText}>{t('fetchingWeather')}</Text>
       </View>
     );
   }
 
   if (error) {
+    const errorText = error === 'locationDenied' || error === 'failedFetch' ? t(error as any) : error;
     return (
       <View style={styles.center}>
         <Ionicons name="alert-circle-outline" size={64} color="#FF3B30" />
-        <Text style={styles.errorText}>{error}</Text>
+        <Text style={styles.errorText}>{errorText}</Text>
         <TouchableOpacity style={styles.button} onPress={loadData}>
-          <Text style={styles.buttonText}>Try Again</Text>
+          <Text style={styles.buttonText}>{t('tryAgain')}</Text>
         </TouchableOpacity>
       </View>
     );
   }
+
+  const displayCity = city === 'detectingLocation' ? t('detectingLocation') : city;
 
   return (
     <ScrollView 
@@ -79,7 +91,7 @@ export default function WeatherHomeScreen() {
     >
       <View style={styles.header}>
         <Ionicons name="location" size={20} color="#007AFF" />
-        <Text style={styles.cityText}>{city}</Text>
+        <Text style={styles.cityText}>{displayCity}</Text>
       </View>
 
       {weather && (
@@ -89,24 +101,28 @@ export default function WeatherHomeScreen() {
             size={120} 
             color="#007AFF" 
           />
-          <Text style={styles.tempText}>{Math.round(weather.current.temperature)}°C</Text>
-          <Text style={styles.descText}>{getWeatherDescription(weather.current.weatherCode)}</Text>
+          <Text style={styles.tempText}>{Math.round(convertTemp(weather.current.temperature, unit))}°{unit}</Text>
+          <Text style={styles.descText}>
+            {t(getWeatherDescriptionKey(weather.current.weatherCode) as any)}
+          </Text>
         </View>
       )}
 
       <View style={styles.infoContainer}>
-        <Text style={styles.infoTitle}>Today's Highlights</Text>
+        <Text style={styles.infoTitle}>{t('highlights')}</Text>
         <View style={styles.row}>
           <View style={styles.infoCard}>
-            <Text style={styles.infoLabel}>High</Text>
-            <Text style={styles.infoValue}>{weather ? Math.round(weather.daily.temperatureMax[0]) : '--'}°</Text>
+            <Text style={styles.infoLabel}>{t('high')}</Text>
+            <Text style={styles.infoValue}>{weather ? `${Math.round(convertTemp(weather.daily.temperatureMax[0], unit))}°` : '--'}</Text>
           </View>
           <View style={styles.infoCard}>
-            <Text style={styles.infoLabel}>Low</Text>
-            <Text style={styles.infoValue}>{weather ? Math.round(weather.daily.temperatureMin[0]) : '--'}°</Text>
+            <Text style={styles.infoLabel}>{t('low')}</Text>
+            <Text style={styles.infoValue}>{weather ? `${Math.round(convertTemp(weather.daily.temperatureMin[0], unit))}°` : '--'}</Text>
           </View>
         </View>
       </View>
+
+
     </ScrollView>
   );
 }

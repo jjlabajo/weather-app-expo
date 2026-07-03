@@ -4,12 +4,19 @@ import { useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text, View } from '@/components/Themed';
 import { searchLocations, LocationSearchResult } from '@/services/weather';
+import { useSettingsStore } from '@/store/useSettingsStore';
+import { translations } from '@/constants/translations';
 
 export default function SearchScreen() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<LocationSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const language = useSettingsStore((state) => state.language);
+
+  const t = (key: keyof typeof translations['en']) => {
+    return translations[language][key] || translations['en'][key];
+  };
 
   useEffect(() => {
     const delayDebounceFn = setTimeout(async () => {
@@ -48,7 +55,7 @@ export default function SearchScreen() {
         <Ionicons name="search" size={20} color="#8E8E93" style={styles.searchIcon} />
         <TextInput
           style={styles.input}
-          placeholder="Search for a city..."
+          placeholder={t('searchPlaceholder')}
           value={query}
           onChangeText={setQuery}
           placeholderTextColor="#8E8E93"
@@ -76,13 +83,14 @@ export default function SearchScreen() {
         )}
         ListEmptyComponent={() => (
           !loading && query.length >= 2 ? (
-            <Text style={styles.emptyText}>No locations found</Text>
+            <Text style={styles.emptyText}>{t('noLocations')}</Text>
           ) : null
         )}
       />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {

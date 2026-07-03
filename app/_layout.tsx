@@ -3,6 +3,8 @@ import Stack from 'expo-router/stack';
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
+import { useAuthStore } from '@/store/useAuthStore';
+import { useSettingsStore } from '@/store/useSettingsStore';
 
 export {
   ErrorBoundary,
@@ -33,6 +35,18 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
+  const initializeAuth = useAuthStore((state) => state.initializeAuth);
+  const user = useAuthStore((state) => state.user);
+  const initializeSettings = useSettingsStore((state) => state.initializeSettings);
+
+  useEffect(() => {
+    initializeAuth();
+  }, [initializeAuth]);
+
+  useEffect(() => {
+    initializeSettings(user?.uid);
+  }, [user, initializeSettings]);
+
   return (
     <ThemeProvider value={DarkTheme}>
       <Stack screenOptions={{ 
@@ -47,3 +61,5 @@ function RootLayoutNav() {
     </ThemeProvider>
   );
 }
+
+

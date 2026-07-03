@@ -4,13 +4,22 @@ import { useLocalSearchParams } from 'expo-router';
 import Stack from 'expo-router/stack';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Text, View } from '@/components/Themed';
-import { fetchWeather, WeatherData, getWeatherIcon, getWeatherDescription } from '@/services/weather';
+import { fetchWeather, WeatherData, getWeatherIcon, getWeatherDescriptionKey } from '@/services/weather';
+import { useSettingsStore, convertTemp } from '@/store/useSettingsStore';
+import { translations } from '@/constants/translations';
 
 export default function WeatherDetailsScreen() {
   const { lat, lon, name } = useLocalSearchParams<{ lat: string; lon: string; name: string }>();
   const [weather, setWeather] = useState<WeatherData | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  
+  const unit = useSettingsStore((state) => state.unit);
+  const language = useSettingsStore((state) => state.language);
+
+  const t = (key: keyof typeof translations['en']) => {
+    return translations[language][key] || translations['en'][key];
+  };
 
   const loadWeather = async () => {
     try {
@@ -42,6 +51,9 @@ export default function WeatherDetailsScreen() {
     );
   }
 
+  const localeMap = { en: 'en-US', es: 'es-ES', fr: 'fr-FR' };
+  const displayLocale = localeMap[language] || 'en-US';
+
   return (
     <ScrollView 
       style={styles.container}
@@ -59,16 +71,18 @@ export default function WeatherDetailsScreen() {
               size={100} 
               color="#007AFF" 
             />
-            <Text style={styles.tempText}>{Math.round(weather.current.temperature)}°C</Text>
-            <Text style={styles.descText}>{getWeatherDescription(weather.current.weatherCode)}</Text>
+            <Text style={styles.tempText}>{Math.round(convertTemp(weather.current.temperature, unit))}°{unit}</Text>
+            <Text style={styles.descText}>
+              {t(getWeatherDescriptionKey(weather.current.weatherCode) as any)}
+            </Text>
           </View>
 
           <View style={styles.forecastContainer}>
-            <Text style={styles.sectionTitle}>8-Day Forecast</Text>
+            <Text style={styles.sectionTitle}>{t('forecastTitle')}</Text>
             {weather.daily.time.map((time, index) => (
               <View key={time} style={styles.forecastRow}>
                 <Text style={styles.dateText}>
-                  {index === 0 ? 'Today' : new Date(time).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' })}
+                  {index === 0 ? t('today') : new Date(time).toLocaleDateString(displayLocale, { weekday: 'short', month: 'short', day: 'numeric' })}
                 </Text>
                 <Ionicons 
                   name={getWeatherIcon(weather.daily.weatherCode[index]) as any} 
@@ -76,14 +90,16 @@ export default function WeatherDetailsScreen() {
                   color="#007AFF" 
                 />
                 <View style={styles.tempRange}>
-                  <Text style={styles.maxTemp}>{Math.round(weather.daily.temperatureMax[index])}°</Text>
-                  <Text style={styles.minTemp}>{Math.round(weather.daily.temperatureMin[index])}°</Text>
+                  <Text style={styles.maxTemp}>{Math.round(convertTemp(weather.daily.temperatureMax[index], unit))}°</Text>
+                  <Text style={styles.minTemp}>{Math.round(convertTemp(weather.daily.temperatureMin[index], unit))}°</Text>
                 </View>
               </View>
             ))}
           </View>
         </>
       )}
+
+
     </ScrollView>
   );
 }
