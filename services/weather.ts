@@ -8,12 +8,19 @@ export interface WeatherData {
     temperature: number;
     weatherCode: number;
     time: string;
+    precipitation: number;
   };
   daily: {
     time: string[];
     weatherCode: number[];
     temperatureMax: number[];
     temperatureMin: number[];
+    precipitationSum: number[];
+  };
+  hourly: {
+    time: string[];
+    temperature: number[];
+    weatherCode: number[];
   };
 }
 
@@ -31,25 +38,33 @@ export const fetchWeather = async (lat: number, lon: number): Promise<WeatherDat
     params: {
       latitude: lat,
       longitude: lon,
-      current: 'temperature_2m,weather_code',
-      daily: 'weather_code,temperature_2m_max,temperature_2m_min',
+      current: 'temperature_2m,weather_code,precipitation',
+      daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_sum',
+      hourly: 'temperature_2m,weather_code',
       timezone: 'auto',
     },
   });
 
-  const { current, daily } = response.data;
+  const { current, daily, hourly } = response.data;
 
   return {
     current: {
       temperature: current.temperature_2m,
       weatherCode: current.weather_code,
       time: current.time,
+      precipitation: current.precipitation || 0,
     },
     daily: {
       time: daily.time,
       weatherCode: daily.weather_code,
       temperatureMax: daily.temperature_2m_max,
       temperatureMin: daily.temperature_2m_min,
+      precipitationSum: daily.precipitation_sum || daily.time.map(() => 0),
+    },
+    hourly: {
+      time: hourly.time,
+      temperature: hourly.temperature_2m,
+      weatherCode: hourly.weather_code,
     },
   };
 };

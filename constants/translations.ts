@@ -29,6 +29,12 @@ export const translations = {
     // Search
     searchPlaceholder: 'Search for a city...',
     noLocations: 'No locations found',
+    popularCities: 'Popular Cities',
+    sunnyClear: 'Sunny / Clear',
+    cloudy: 'Cloudy',
+    rainy: 'Rainy',
+    stormy: 'Stormy',
+    moreCities: 'More Cities',
 
     // Details
     forecastTitle: '8-Day Forecast',
@@ -80,6 +86,12 @@ export const translations = {
     // Search
     searchPlaceholder: 'Buscar una ciudad...',
     noLocations: 'No se encontraron ubicaciones',
+    popularCities: 'Ciudades populares',
+    sunnyClear: 'Soleado / Despejado',
+    cloudy: 'Nublado',
+    rainy: 'Lluvioso',
+    stormy: 'Tormentoso',
+    moreCities: 'Más ciudades',
 
     // Details
     forecastTitle: 'Pronóstico de 8 días',
@@ -131,6 +143,12 @@ export const translations = {
     // Search
     searchPlaceholder: 'Rechercher une ville...',
     noLocations: 'Aucun emplacement trouvé',
+    popularCities: 'Villes populaires',
+    sunnyClear: 'Ensoleillé / Dégagé',
+    cloudy: 'Nuageux',
+    rainy: 'Pluvieux',
+    stormy: 'Orageux',
+    moreCities: 'Plus de villes',
 
     // Details
     forecastTitle: 'Prévisions sur 8 jours',

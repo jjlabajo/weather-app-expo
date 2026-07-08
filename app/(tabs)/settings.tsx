@@ -168,6 +168,7 @@ const styles = StyleSheet.create({
   content: {
     padding: 20,
     paddingTop: 30,
+    paddingBottom: 120,
   },
   section: {
     marginBottom: 30,
